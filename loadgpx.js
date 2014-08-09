@@ -50,14 +50,23 @@
 function GPXParser(xmlDoc, map) {
     this.xmlDoc = xmlDoc;
     this.map = map;
-    this.trackcolour = "#ff00ff"; // red
+    this.days = {};
+    this.trackcolours = [
+        '#e51c23',
+        '#e91e63',
+        '#9c27b0',
+        '#3f51b5',
+        '#03a9f4',
+        '#8bc34a',
+        '#009688'
+    ]; // red
     this.trackwidth = 5;
     this.mintrackpointdelta = 0.0001
 }
 
-// Set the colour of the track line segements.
-GPXParser.prototype.setTrackColour = function(colour) {
-    this.trackcolour = colour;
+// Set the colours of the track line segements.
+GPXParser.prototype.setTrackColours = function(colours) {
+    this.trackcolours = colours;
 }
 
 // Set the width of the track line segements
@@ -130,8 +139,7 @@ GPXParser.prototype.createMarker = function(point) {
     });
 }
 
-GPXParser.prototype.addTrackSegmentToMap = function(trackSegment, colour,
-        width) {
+GPXParser.prototype.addTrackSegmentToMap = function(trackSegment, width) {
     var trackpoints = trackSegment.getElementsByTagName("trkpt");
     if(trackpoints.length == 0) {
         return;
@@ -162,19 +170,28 @@ GPXParser.prototype.addTrackSegmentToMap = function(trackSegment, colour,
 
     }
 
+    var date = new Date(trackpoints[0].getElementsByTagName('time')[0].innerHTML);
+    this.addToLengend(date);
+
     var polyline = new google.maps.Polyline({
         path: pointarray,
-        strokeColor: colour,
+        strokeColor: this.trackcolours[date.getDay()],
         strokeWeight: width,
         map: this.map
     });
 }
 
-GPXParser.prototype.addTrackToMap = function(track, colour, width) {
+GPXParser.prototype.addToLengend = function(date) {    
+    var day = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth()+1)).slice(-2) + '/' + date.getFullYear();
+    if (!this.days.hasOwnProperty(day)) {
+        this.days[day] = this.trackcolours[date.getDay()];
+    }
+}
+
+GPXParser.prototype.addTrackToMap = function(track, width) {
     var segments = track.getElementsByTagName("trkseg");
     for(var i = 0; i < segments.length; i++) {
-        var segmentlatlngbounds = this.addTrackSegmentToMap(segments[i], colour,
-                width);
+        var segmentlatlngbounds = this.addTrackSegmentToMap(segments[i], width);
     }
 }
 
@@ -247,7 +264,7 @@ GPXParser.prototype.centerAndZoomToLatLngBounds = function(latlngboundsarray) {
 GPXParser.prototype.addTrackpointsToMap = function() {
     var tracks = this.xmlDoc.documentElement.getElementsByTagName("trk");
     for(var i = 0; i < tracks.length; i++) {
-        this.addTrackToMap(tracks[i], this.trackcolour, this.trackwidth);
+        this.addTrackToMap(tracks[i], this.trackwidth);
     }
 }
 
@@ -256,4 +273,14 @@ GPXParser.prototype.addWaypointsToMap = function() {
     for(var i = 0; i < waypoints.length; i++) {
         this.createMarker(waypoints[i]);
     }
+}
+
+GPXParser.prototype.drawLegend = function() {
+    var docFrag = document.createDocumentFragment();
+    Object.keys(this.days).forEach(function(day){
+        var listElement = document.createElement('li');
+        listElement.innerHTML = '<span style="background-color: ' + this.days[day] + '"></span>' + day;
+        docFrag.appendChild(listElement);
+    }, this);
+    document.getElementById('legend').appendChild(docFrag);
 }

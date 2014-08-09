@@ -1,1 +1,5 @@
 A fork and quick mod of [gpxviever](https://github.com/peplin/gpxviewer) to help visualise gpx data from [Moves Export](http://moves-export.com.com).
+
+Example output:
+
+![image](example/example.png)

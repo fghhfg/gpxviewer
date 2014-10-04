@@ -1,3 +1,17 @@
+This library needs `<time>` inside `<trkpt>`.
+
+And it can't show `route` tag (`<rte>`).
+
+```
+<trkpt lon="9.860624216140083" lat="54.9328621088893">
+    <ele>143.94</ele>
+    <name>Position 1</name>
+    <time>2009-07-11T21:37:58Z</time>
+</trkpt>
+```
+
+---
+
 A fork and quick mod of [gpxviever](https://github.com/peplin/gpxviewer) to help visualise gpx data from [Moves Export](http://moves-export.com.com).
 
 Example output:
